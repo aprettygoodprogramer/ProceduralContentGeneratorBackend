@@ -22,7 +22,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/generatedungeon", get(|| async { "Hello, World!" }))
+        .route("/generateterrain", get(|| async { "Hello, World!" }))
         .layer(cors);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
