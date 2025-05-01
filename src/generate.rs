@@ -13,6 +13,11 @@ use std::io::Cursor;
 pub struct TerrainParams {
     pub rooms: f64,
     pub seed: u32,
+    pub octaves: usize,
+    pub persistence: f64,
+    pub lacunarity: f64,
+    #[serde(rename = "sea_level")]
+    pub sea_level: f64,
 }
 
 pub async fn generate_terrain(Query(params): Query<TerrainParams>) -> impl IntoResponse {
@@ -20,13 +25,13 @@ pub async fn generate_terrain(Query(params): Query<TerrainParams>) -> impl IntoR
     const H: u32 = 256;
 
     let continents = Fbm::<Perlin>::new(params.seed)
-        .set_octaves(6)
-        .set_persistence(0.5)
-        .set_lacunarity(2.0)
+        .set_octaves(params.octaves)
+        .set_persistence(params.persistence)
+        .set_lacunarity(params.lacunarity)
         .set_frequency(1.0);
 
     let scale = 1.0 + params.rooms / 10.0;
-    let sea_level = 0.0_f64;
+    let sea_level = params.sea_level;
 
     let mut img = RgbImage::new(W, H);
     for y in 0..H {
@@ -44,13 +49,13 @@ pub async fn generate_terrain(Query(params): Query<TerrainParams>) -> impl IntoR
             } else {
                 let h = ((v - sea_level) / (1.0 - sea_level)).clamp(0.0, 1.0);
                 if h < 0.25 {
-                    Rgb([238, 214, 175]) 
+                    Rgb([238, 214, 175]) // sand
                 } else if h < 0.50 {
-                    Rgb([34, 139, 34]) 
+                    Rgb([34, 139, 34]) // grass
                 } else if h < 0.75 {
-                    Rgb([139, 137, 137]) 
+                    Rgb([139, 137, 137]) // rock
                 } else {
-                    Rgb([255, 250, 250]) 
+                    Rgb([255, 250, 250]) // snow
                 }
             };
 
